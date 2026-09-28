@@ -6,7 +6,7 @@ Este arquivo e gerado automaticamente pela pipeline.
 ## Alunos
 
 - ﻿Jeferson de Sousa Vasselai
-- Victor Hugo
+- Victor Hugo Ramos
 
 ## Resultado do Docker Build
 
@@ -14,8 +14,8 @@ Este arquivo e gerado automaticamente pela pipeline.
 |---|---|
 | Status | 🟢 Sucesso |
 | Imagem | `ghcr.io/jeffsv16/seguracao-info` |
-| Tags | `latest`, `c10ab34469e0c9fe1a667c524091297b1551efa6` |
-| Digest | `sha256:320aa2683db05cd9ccd7609389b2e9e59dfa46c90c77224dd032ad3c577ccab2` |
-| Commit | `c10ab34469e0c9fe1a667c524091297b1551efa6` |
-| Execucao | [36375072320](https://github.com/jeffSv16/seguracao-info/actions/runs/36375072320) |
-| Data | 28/09/2026 03:49 UTC |
+| Tags | `latest`, `b866f382dd43dc4ea560ac04c03aee93be9f5926` |
+| Digest | `sha256:4d5521a0993a2c5c8f0fcfcbf0e4fcaa236220f3dcc33362cf030d927d2b4b9c` |
+| Commit | `b866f382dd43dc4ea560ac04c03aee93be9f5926` |
+| Execucao | [36465856573](https://github.com/jeffSv16/seguracao-info/actions/runs/36465856573) |
+| Data | 28/09/2026 18:34 UTC |
