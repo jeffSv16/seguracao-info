@@ -105,3 +105,36 @@ Repositório: `jeffSv16/seguracao-info`
 > - No log expandido do job `Analise Estatica de Codigo (Semgrep)`, mostrar o painel com os 2 achados em `AccountController.java` (regras `formatted-sql-string` e `tainted-sql-string`).
 
 ---
+
+## 4. Gate 4: SCA - Software Composition Analysis (Trivy)
+
+- **Job**: `sca`
+- **Execução GitHub Actions**: [Run 36374639161](https://github.com/jeffSv16/seguracao-info/actions/runs/36374639161)
+- **Status do Gate 1 (Gitleaks)**: 🟢 **SUCESSO**
+- **Status do Gate 2 (Testes)**: 🟢 **SUCESSO**
+- **Status do Gate 3 (Semgrep)**: 🟢 **SUCESSO** (Passou após PreparedStatement)
+- **Status do Gate 4 (Trivy)**: ❌ **FALHOU** (Código de saída: 1 - Severidades CRITICAL/HIGH detectadas)
+- **Status dos Gates Subsequentes**: ⚪ Pulados (`dockerfile-lint`, `build-and-push`)
+
+### Detalhes da Falha
+- **Ferramenta**: Aquasecurity Trivy v0.36.0 (`scanners: vuln`, `severity: CRITICAL,HIGH`)
+- **Problema**: Dependência vulnerável grave na cadeia de suprimentos (Log4Shell) e dependências não utilizadas
+- **Arquivo Afetado**: `pom.xml`
+- **Vulnerabilidades Detectadas na biblioteca `org.apache.logging.log4j:log4j-core:2.14.1`**:
+  1. `CVE-2021-44228` (CRITICAL): Execução remota de código (RCE) via lookup JNDI no Log4j (Log4Shell).
+  2. `CVE-2021-45046` (CRITICAL): Negação de serviço (DoS) e potencial RCE com padrões de contexto de thread.
+  3. `CVE-2021-45105` (HIGH): Negação de serviço (DoS) com recursão descontrolada no MDC.
+- **Falha de Higiene / Superfície de Ataque**:
+  - Declaração duplicada da biblioteca `com.google.code.gson:gson:2.10.1`, sem nenhum uso no código-fonte (`grep` por `com.google.gson` não retorna nada).
+
+### Correção Aplicada
+1. Remoção da dependência vulnerável `org.apache.logging.log4j:log4j-core:2.14.1` do `pom.xml`, pois o código do `PaymentService` depende unicamente do `log4j-api`, que já é fornecido e gerenciado com segurança pelo próprio Spring Boot starter.
+2. Remoção de todas as entradas da dependência não utilizada `com.google.code.gson:gson` para redução de superfície de ataque e higiene da cadeia de suprimentos de software.
+3. Atualização do `spring-boot-starter-parent` para versão recente suportada (`3.3.4` / `3.4.x`) para prevenir vulnerabilidades conhecidas em componentes como Tomcat e Jackson.
+
+> **PRECISA DE PRINT MANUAL**:
+> - Tela da execução do GitHub Actions: `https://github.com/jeffSv16/seguracao-info/actions/runs/36374639161`
+> - Deve mostrar `Deteccao de Segredos`, `Testes Unitarios` e `Analise Estatica` em verde 🟢, e `Analise de Dependencias (Trivy)` em vermelho ❌.
+> - No log expandido do job `Analise de Dependencias (Trivy)`, mostrar a tabela do Trivy listando o `pom.xml` com a biblioteca `log4j-core:2.14.1` e as vulnerabilidades `CVE-2021-44228` (CRITICAL), `CVE-2021-45046` e `CVE-2021-45105`.
+
+---
