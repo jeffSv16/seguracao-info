@@ -138,3 +138,34 @@ Repositório: `jeffSv16/seguracao-info`
 > - No log expandido do job `Analise de Dependencias (Trivy)`, mostrar a tabela do Trivy listando o `pom.xml` com a biblioteca `log4j-core:2.14.1` e as vulnerabilidades `CVE-2021-44228` (CRITICAL), `CVE-2021-45046` e `CVE-2021-45105`.
 
 ---
+
+## 5. Gate 5: Hardening de Contêiner (Hadolint)
+
+- **Job**: `dockerfile-lint`
+- **Execução GitHub Actions**: [Run 36374858143](https://github.com/jeffSv16/seguracao-info/actions/runs/36374858143)
+- **Status dos Gates 1 a 4**: 🟢 **SUCESSO** (`secret-scan`, `unit-tests`, `sast`, `sca`)
+- **Status do Gate 5 (Hadolint)**: ❌ **FALHOU** (Código de saída: 1 - threshold: warning)
+- **Status do Gate 6 (Build & Push)**: ⚪ Pulado
+
+### Detalhes da Falha
+- **Ferramenta**: Hadolint v3.1.0 (`failure-threshold: warning`)
+- **Problema**: Más práticas de segurança e ausência de hardening no `Dockerfile`
+- **Arquivo Afetado**: `Dockerfile`
+- **Violações Detectadas no Log**:
+  1. `Dockerfile:1 DL3007 warning: Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag`
+     - Causa: Uso da imagem `FROM openjdk:latest`, que além de ser obsoleta e deprecada, introduz imprevisibilidade em builds futuros.
+  2. `Dockerfile:9 DL3002 warning: Last USER should not be root`
+     - Causa: Execução explícita do processo como superusuário `USER root`, violando frontalmente o Princípio do Menor Privilégio (PoLP). Em caso de exploração de vulnerabilidade na aplicação (como escape de JVM ou RCE), o atacante ganharia privilégios de root no contêiner.
+
+### Correção Aplicada
+- Substituição da imagem base por uma imagem mínima e com versão fixada: `eclipse-temurin:17-jre-alpine`.
+- Criação de um grupo e usuário de sistema dedicado não privilegiado (`app`).
+- Definição do usuário de execução como `USER app`.
+- Ajuste de permissões do diretório da aplicação (`/app`).
+
+> **PRECISA DE PRINT MANUAL**:
+> - Tela da execução do GitHub Actions: `https://github.com/jeffSv16/seguracao-info/actions/runs/36374858143`
+> - Deve mostrar os Gates 1 a 4 com verde 🟢, e `Lint do Dockerfile (Hadolint)` com vermelho ❌.
+> - No log expandido do job `Lint do Dockerfile (Hadolint)`, mostrar as mensagens de erro das regras `DL3007` (linha 1) e `DL3002` (linha 9).
+
+---
