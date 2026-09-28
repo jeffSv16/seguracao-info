@@ -67,3 +67,41 @@ Repositório: `jeffSv16/seguracao-info`
 > - No log expandido do job `Testes Unitarios (Maven)`, mostrar o trecho `[ERROR] Failures: PaymentServiceTest.deveAplicarDezPorCentoDeDesconto:16 expected: <180.0> but was: <198.0>`.
 
 ---
+
+## 3. Gate 3: SAST - Análise Estática de Código (Semgrep)
+
+- **Job**: `sast`
+- **Execução GitHub Actions**: [Run 36374452853](https://github.com/jeffSv16/seguracao-info/actions/runs/36374452853)
+- **Status do Gate 1 (Gitleaks)**: 🟢 **SUCESSO**
+- **Status do Gate 2 (Testes)**: 🟢 **SUCESSO**
+- **Status do Gate 3 (Semgrep)**: ❌ **FALHOU** (Código de saída: 1 - 2 achados bloqueantes)
+- **Status dos Gates Subsequentes**: ⚪ Pulados (`sca`, `dockerfile-lint`, `build-and-push`)
+
+### Detalhes da Falha
+- **Ferramenta**: Semgrep v1.178.0 (`--config p/ci --config p/java --config p/secrets --error`)
+- **Problema**: SQL Injection (CWE-89) / Concatenação insegura de entrada de usuário em comando SQL
+- **Arquivo Afetado**: `src/main/java/com/unifebe/devsecops/controller/AccountController.java`
+- **Linha**: 38
+- **Regras Disparadas**:
+  1. `java.lang.security.audit.formatted-sql-string.formatted-sql-string`: Detectou formatação/concatenação de string em declaração SQL.
+  2. `java.spring.security.injection.tainted-sql-string.tainted-sql-string`: Detectou fluxo direto de dados não confiáveis (`@RequestParam String id`) para a string SQL.
+- **Trecho Inseguro**:
+  ```java
+  ResultSet rs = stmt.executeQuery("SELECT * FROM contas WHERE id = '" + id + "'");
+  ```
+
+### Correção Aplicada
+- Substituída a interface genérica `Statement` e a concatenação insegura por `PreparedStatement` parametrizado com placeholder `?`:
+  ```java
+  PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM contas WHERE id = ?");
+  pstmt.setString(1, id);
+  ResultSet rs = pstmt.executeQuery();
+  ```
+- Isso garante a separação estrita entre a instrução SQL e os dados enviados pelo usuário, mitigando integralmente a vulnerabilidade de SQL Injection.
+
+> **PRECISA DE PRINT MANUAL**:
+> - Tela da execução do GitHub Actions: `https://github.com/jeffSv16/seguracao-info/actions/runs/36374452853`
+> - Deve mostrar `Deteccao de Segredos` e `Testes Unitarios` em verde 🟢, e `Analise Estatica de Codigo (Semgrep)` em vermelho ❌.
+> - No log expandido do job `Analise Estatica de Codigo (Semgrep)`, mostrar o painel com os 2 achados em `AccountController.java` (regras `formatted-sql-string` e `tainted-sql-string`).
+
+---
